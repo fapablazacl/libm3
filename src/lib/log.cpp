@@ -13,13 +13,17 @@
 // Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA
 
 #include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
-#include <windows.h>
-#include <time.h>
+#include <ctime>
 #include <sys/timeb.h>
+#include <cstdio>
+#include <cstdarg>
+#include <cstdlib>
 
 #include "log.hpp"
+
+#if defined(_WIN32)
+#include <windows.h>
+#endif
 
 FILE *log = NULL;
 
@@ -29,12 +33,11 @@ void LogPrintf(int Level, const char *format, ...)
 	char buffer[2048];
 	
 	va_start(args, format);
-	vsnprintf_s(buffer, 2047, 2047, format, args);
+	std::vsnprintf(buffer, 2047, format, args);
 	va_end(args);
 	
-	if (log == NULL)
-	{
-		fopen_s(&log, "libm3.log", "w");
+	if (log == NULL) {
+		log = std::fopen("libm3.log", "w");
 	}
 	
 	// Create log message
@@ -44,6 +47,8 @@ void LogPrintf(int Level, const char *format, ...)
 	LogConsole(Level, Log);
 }
 
+
+#if defined(_WIN32)
 void LogConsole(int Level, std::string s)
 {
 	HWND hWnd = GetConsoleWindow();
@@ -80,6 +85,11 @@ void LogConsole(int Level, std::string s)
 	if(hConsole)
 		WriteConsoleA(hConsole, s.c_str(), strlen(s.c_str()), &cCharsWritten, NULL);
 }
+#else
+void LogConsole(int Level, std::string s) {
+    std::cout << s << std::endl;
+}
+#endif
 
 
 // Return the current time formatted as Minutes:Seconds:Milliseconds in the form 00:00:000
@@ -91,14 +101,14 @@ std::string GetTimeFormatted()
 	char tmp[13];
 
 	time(&sysTime);
-	localtime_s(gmTime, &sysTime);
+    gmTime = std::localtime(&sysTime);
 
 	strftime(tmp, 6, "%M:%S", gmTime);
 
 	// Now add the milliseconds
 	struct timeb tp;
 	(void)::ftime(&tp);
-	sprintf_s(formattedTime, 13, "%s:%03i", tmp, tp.millitm);
+	sprintf(formattedTime, "%s:%03i", tmp, tp.millitm);
 
 	return std::string(formattedTime);
 }
@@ -116,7 +126,7 @@ std::string StringFromFormat(const char* format, ...)
 		buf = new char[newSize + 1];
 	
 	    va_start(args, format);
-		writtenCount = vsnprintf_s(buf, newSize + 1, newSize, format, args);
+		writtenCount = std::vsnprintf(buf, newSize + 1, format, args);
 		va_end(args);
 		if (writtenCount >= (int)newSize) {
 			writtenCount = -1;

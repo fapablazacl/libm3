@@ -67,24 +67,24 @@ Model& Model::operator=(const Model& m)
 
 Model* Model::LoadModel(string filename)
 {
-    path filepath(filename);
+    const path filepath(filename);
 
     if( !exists(filepath) ) // Invalid filepath
         return NULL;
 
-    map<string, Model>::iterator iter = m_models.find(filepath.filename() );
+    map<string, Model>::iterator iter = m_models.find(filename);
     if( iter != m_models.end() ) // File already loaded
         return Model::GetModel(filename);
 
     FILE* f = NULL;
     int error = 0;
     
-    error = fopen_s(&f, filepath.string().c_str(), "rb");
-    if(error) // Failed to open the file
+    f = std::fopen(filename.c_str(), "rb");
+    if (!f) // Failed to open the file
         return NULL;
 
     Model m3(f);
-    pair<string, Model> entry(filepath.filename(), m3);
+    pair<string, Model> entry(filename, m3);
     
     m_models.insert(entry);
     
@@ -93,18 +93,18 @@ Model* Model::LoadModel(string filename)
 
 void Model::UnloadModel(string filename)
 {
-    path filepath(filename);
+    const path filepath(filename);
 
-    map<string, Model>::iterator iter = m_models.find(filepath.filename() );
+    map<string, Model>::iterator iter = m_models.find(filename);
     if( iter != m_models.end() )
         m_models.erase( iter );
 };
 
 Model* Model::GetModel(string filename)
 {
-    path filepath(filename);
+    const path filepath(filename);
 
-    map<string, Model>::iterator iter = m_models.find( filepath.filename() );
+    map<string, Model>::iterator iter = m_models.find(filename);
     if( iter == m_models.end() ) // Model isn't loaded
     {
         Model* pModel = LoadModel(filename);
@@ -143,8 +143,8 @@ int Model::Convert(std::string filename)
     path p(filename);
     p.replace_extension(".obj");
 
-    FILE* f = NULL;
-    if( fopen_s(&f, p.string().c_str(), "w") )
+    FILE* f = fopen(p.string().c_str(), "w");
+    if (!f)
         return -1;
 
     switch(pRefs[pHead->MODL.ref].type)
@@ -198,12 +198,12 @@ int Model::Convert(std::string filename)
     {
         if(pVerts1)
         {
-            fprintf_s(f, "v %f %f %f\n", pVerts1[i].pos.x, pVerts1[i].pos.y, pVerts1[i].pos.z);
+            fprintf(f, "v %f %f %f\n", pVerts1[i].pos.x, pVerts1[i].pos.y, pVerts1[i].pos.z);
         }
 
         if(pVerts2)
         {
-            fprintf_s(f, "v %f %f %f\n", pVerts2[i].pos.x, pVerts2[i].pos.y, pVerts2[i].pos.z);
+            fprintf(f, "v %f %f %f\n", pVerts2[i].pos.x, pVerts2[i].pos.y, pVerts2[i].pos.z);
         }
     }
     
@@ -215,7 +215,7 @@ int Model::Convert(std::string filename)
             float u = (float) pVerts1[i].uv[0] / 2048;
             float v = (float) pVerts1[i].uv[1] / 2048;
 
-            fprintf_s(f, "vt %f %f\n", u, -v);
+            fprintf(f, "vt %f %f\n", u, -v);
         }
 
         if(pVerts2)
@@ -223,7 +223,7 @@ int Model::Convert(std::string filename)
             float u = (float) pVerts2[i].uv[0] / 2048;
             float v = (float) pVerts2[i].uv[1] / 2048;
 
-            fprintf_s(f, "vt %f %f\n", u, -v);
+            fprintf(f, "vt %f %f\n", u, -v);
         }
     }
     
@@ -258,16 +258,16 @@ int Model::Convert(std::string filename)
             norm.z = norm.z/w;
         }
 
-        fprintf_s(f, "vn %f %f %f\n", norm.x, norm.y, norm.z);
+        fprintf(f, "vn %f %f %f\n", norm.x, norm.y, norm.z);
     }
 
     // Write geosets
     for(uint32 i = 0; i < views->regions.nEntries; i++)
     {
-        fprintf_s(f, "g %s %d\n", "geoset", i);
+        fprintf(f, "g %s %d\n", "geoset", i);
         for(uint32 j = regions[i].ofsIndices; j < (regions[i].ofsIndices + regions[i].nIndices); j +=3)
         {
-            fprintf_s(f, "f %d/%d/%d %d/%d/%d %d/%d/%d\n", faces[j]+1, faces[j]+1, faces[j]+1,
+            fprintf(f, "f %d/%d/%d %d/%d/%d %d/%d/%d\n", faces[j]+1, faces[j]+1, faces[j]+1,
                                                            faces[j+1]+1, faces[j+1]+1, faces[j+1]+1,
                                                            faces[j+2]+1, faces[j+2]+1, faces[j+2]+1);
         }

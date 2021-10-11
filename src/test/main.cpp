@@ -15,11 +15,11 @@ int main(int argc, char* argv[])
 
     if( is_directory(dir) )
     {
-        FILE* f = NULL;
-        fopen_s(&f, "output.txt", "w");
+        FILE* f = fopen("output.txt", "w");
+        
         for(directory_iterator iter(dir),end; iter != end; ++iter)
         {
-            Model* pModel = Model::LoadModel( (*iter).string().c_str() );
+            Model* pModel = Model::LoadModel(iter->path().string().c_str());
 
             if(!pModel)
                 continue;
