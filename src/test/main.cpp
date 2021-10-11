@@ -6,12 +6,9 @@ using namespace std;
 using namespace m3;
 using namespace boost::filesystem;
 
-int main(int argc, char* argv[])
-{
-    if( argc == 1 )
-        return -1; // No filename given
-
-    path dir(argv[1]);
+int main(int argc, char* argv[]) {
+    string filePath = "/Users/fapablaza/Desktop/devwarecl/Repositorios/libm3/SC1InfestedMarine.m3";
+    path dir = filePath;
 
     if( is_directory(dir) )
     {
@@ -46,9 +43,9 @@ int main(int argc, char* argv[])
     }
     else
     {
-        Model::LoadModel(argv[1]);
+        Model::LoadModel(filePath);
         
-        Model* pModel = Model::GetModel(argv[1]);
+        Model* pModel = Model::GetModel(filePath);
         MD33* pHead = pModel->GetHeader();
         ReferenceEntry* pRefs = pModel->GetRefs();
 
@@ -126,6 +123,8 @@ int main(int argc, char* argv[])
         vector<Region> regs;
         for(uint32 i = 0; i < view->regions.nEntries; i++)
             regs.push_back(regions[i]);
+        
+        int x = 0;
 
     }
 
